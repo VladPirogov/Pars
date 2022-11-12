@@ -1,0 +1,13 @@
+version: '3.7'
+services:
+  srv-autonomous-system:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    container_name: srv-autonomous-system
+#    external_links:
+#        - main_database_1
+    ports:
+      - "8071:8090"
+
+    command: python ./app.py

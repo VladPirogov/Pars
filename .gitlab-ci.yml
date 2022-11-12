@@ -1,0 +1,17 @@
+variables:
+  BUILD_TAG: "$CI_REGISTRY_IMAGE:$CI_BUILD_REF_SLUG"
+
+stages:
+  - build
+
+before_script:
+  - docker login -u gitlab-ci-token -p $CI_BUILD_TOKEN $CI_REGISTRY || true
+
+build:
+  stage: build
+  script:
+    - docker build -t $BUILD_TAG .
+    - docker push $BUILD_TAG
+#    - echo "y" | docker system prune
+  tags:
+    - build
