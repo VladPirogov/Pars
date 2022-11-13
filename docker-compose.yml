@@ -1,13 +1,13 @@
 version: '3.7'
 services:
-  srv-autonomous-system:
+  srv-della_parser:
     build:
       context: .
       dockerfile: ./Dockerfile
-    container_name: srv-autonomous-system
+    container_name: srv-della_parser
 #    external_links:
 #        - main_database_1
     ports:
-      - "8071:8090"
+      - "5000:5000"
 
     command: python ./app.py

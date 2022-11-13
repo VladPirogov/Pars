@@ -1,8 +1,7 @@
 import requests
 from bs4 import BeautifulSoup
-from threading import Thread
 from fastapi import HTTPException
-import time
+import json
 
 first_step_url = 'https://della.com.ua/search/a204bd204eflolh0i221102l230103k0m1.html'
 headers = {
@@ -14,13 +13,11 @@ headers = {
 }
 domain = 'https://della.com.ua'
 
-threads = []
-results = []
-
 
 def get_cards(soup: BeautifulSoup) -> list:
     request_card_list = soup.find_all("div", {"class": "is_search"})
     ansver = []
+    get_text = lambda x: x.text.strip('\n').replace('\n\n\n\n\n\n', '\n')
     for card in request_card_list:
         is_active = True if not card.find("div", {"class": "klushka veshka_deleted"}) else False
         date_add = card.find("div", {"class": "date_add"})
@@ -32,7 +29,7 @@ def get_cards(soup: BeautifulSoup) -> list:
         distance_obj = card.find("a", {"class": "distance"})
         if distance_obj:
             distance = {
-                'text': distance_obj.text,
+                'text': get_text(distance_obj),
                 'url': distance_obj.get('href')
             }
         else:
@@ -44,26 +41,27 @@ def get_cards(soup: BeautifulSoup) -> list:
             route_parsered.append(
                 {
                     'region': i.get('title'),
-                    'city': i.text
+                    'city': get_text(i)
                 }
             )
         cargo_type = card.find("span", {"class": "cargo_type"})
-        request_tags = [i.text for i in card.find("div", {"class": "request_tags"}).find_all('div')] if card.find(
+        request_tags = [get_text(i) for i in card.find("div", {"class": "request_tags"}).find_all('div')] if card.find(
             "div", {"class": "request_tags"}) else None
-        price_tags = [i.text for i in card.find("div", {"class": "price_tags"}).find_all('div')] if card.find("div",
-                                                                                                              {
-                                                                                                                  "class": "price_tags"}) else None
+        price_tags = [get_text(i) for i in card.find("div", {"class": "price_tags"}).find_all('div')] if card.find(
+            "div",
+            {
+                "class": "price_tags"}) else None
         ansver.append(
             {
                 'is_active': is_active,
-                'date_add': date_add.text if date_add else None,
-                'truck_type': truck_type.text if truck_type else None,
-                'weight': weight.text if weight else None,
-                'price_main': price_main.text if price_main else None,
-                'country_abbr': country_abbr.text if country_abbr else None,
-                'price_additional': price_additional.text if price_additional else None,
+                'date_add': get_text(date_add) if date_add else None,
+                'truck_type': get_text(truck_type) if truck_type else None,
+                'weight': get_text(weight) if weight else None,
+                'price_main': get_text(price_main) if price_main else None,
+                'country_abbr': get_text(country_abbr) if country_abbr else None,
+                'price_additional': get_text(price_additional) if price_additional else None,
                 'distance': distance,
-                'cargo_type': cargo_type.text if cargo_type else None,
+                'cargo_type': get_text(cargo_type) if cargo_type else None,
                 'route': route_parsered,
                 'request_tags': request_tags,
                 'price_tags': price_tags
@@ -72,19 +70,7 @@ def get_cards(soup: BeautifulSoup) -> list:
     return ansver
 
 
-def parser_site(url: str):
-    response = requests.get(
-        url=url,
-        headers=headers
-    )
-    if response.status_code == 200:
-        soup = BeautifulSoup(response.text)
-        return get_cards(soup=soup)
-    else:
-        raise HTTPException(status_code=response.status_code)
-
-
-def pars_all(url: str = None):
+def pars_all_cards(url: str = None):
     response = requests.get(
         url=url if url else first_step_url,
         headers=headers
@@ -94,14 +80,19 @@ def pars_all(url: str = None):
         cards = get_cards(soup=soup)
         next_page = soup.find('a', text='наступна стор.')
         if next_page:
-            cards.extend(pars_all(url=f"{domain}{next_page.get('href')}"))
+            cards.extend(pars_all_cards(url=f"{domain}{next_page.get('href')}"))
         return cards
     else:
         raise HTTPException(status_code=response.status_code)
 
 
-if __name__ == '__main__':
-    start_time = time.time()
-    temp = pars_all()
-    print("--- %s seconds ---" % (time.time() - start_time))
-    # print(temp)
+def parser_site():
+    data = pars_all_cards()
+    with open('data.json', 'w', encoding='utf8') as file:
+        json.dump(data, file, ensure_ascii=False)
+        return file
+
+
+def get_file():
+    with open('data.json', 'r', encoding='utf8') as file:
+        return file
