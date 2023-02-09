@@ -17,10 +17,12 @@ domain = 'https://della.com.ua'
 def get_cards(soup: BeautifulSoup) -> list:
     request_card_list = soup.find_all("div", {"class": "is_search"})
     ansver = []
-    get_text = lambda x: x.text.strip('\n').replace('\n\n\n\n\n\n', '\n')
+    get_text = lambda x: x.text.strip('\n').replace('\n\n\n\n\n\n', '\n').replace(' ', ' ')
     for card in request_card_list:
+        _id = card.attrs.get('request_id')
         is_active = True if not card.find("div", {"class": "klushka veshka_deleted"}) else False
         date_add = card.find("div", {"class": "date_add"})
+        cube = card.find("div", {"class": "cube"})
         truck_type = card.find("div", {"class": "truck_type"})
         weight = card.find("div", {"class": "weight"})
         price_main = card.find("div", {"class": "price_main"})
@@ -53,8 +55,10 @@ def get_cards(soup: BeautifulSoup) -> list:
                 "class": "price_tags"}) else None
         ansver.append(
             {
+                'id': _id,
                 'is_active': is_active,
                 'date_add': get_text(date_add) if date_add else None,
+                'cube': get_text(cube) if cube else None,
                 'truck_type': get_text(truck_type) if truck_type else None,
                 'weight': get_text(weight) if weight else None,
                 'price_main': get_text(price_main) if price_main else None,
