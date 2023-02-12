@@ -28,11 +28,11 @@ class DbMongo:
 
     def insert_update_cards(self, cards):
         for card in cards:
-            if old_card := self.database.find_one({'_id': card.get('_id')}):
-                self.database.update_one({'_id': card.get('_id')},
+            if old_card := self.database.cards.find_one({'_id': card.get('_id')}):
+                self.database.cards.update_one({'_id': card.get('_id')},
                                                  {'$set': card})
             else:
-                self.database.insert_one(card)
+                self.database.cards.insert_one(card)
 
 
 if __name__ == '__main__':
