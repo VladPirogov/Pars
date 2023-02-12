@@ -1,6 +1,5 @@
 from fastapi import FastAPI
-from della_parser import parser_site, get_file
-import uvicorn
+from .della_parser import parser_site, get_file
 
 # Initializing app
 app = FastAPI()
@@ -22,6 +21,3 @@ async def start_pars():
 def get_data_file():
     return get_file()
 
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", port=5000, log_level="info")
