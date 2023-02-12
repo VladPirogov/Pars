@@ -26,6 +26,14 @@ class DbMongo:
             if collection not in existing_collections:
                 self.database.create_collection(collection)
 
+    def insert_update_cards(self, cards):
+        for card in cards:
+            if old_card := self.database.find_one({'_id': card.get('_id')}):
+                self.database.update_one({'_id': card.get('_id')},
+                                                 {'$set': card})
+            else:
+                self.database.insert_one(card)
+
 
 if __name__ == '__main__':
     db = DbMongo()

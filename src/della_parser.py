@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
 import json
+from database.connection import DbMongo
 
 first_step_url = 'https://della.com.ua/search/a204bd204eflolh0i221102l230103k0m1.html'
 headers = {
@@ -12,6 +13,8 @@ headers = {
     "User-Agent": "Mozilla/5.0"
 }
 domain = 'https://della.com.ua'
+
+db = DbMongo()
 
 
 def get_cards(soup: BeautifulSoup) -> list:
@@ -55,7 +58,7 @@ def get_cards(soup: BeautifulSoup) -> list:
                 "class": "price_tags"}) else None
         ansver.append(
             {
-                'id': _id,
+                '_id': _id,
                 'is_active': is_active,
                 'date_add': get_text(date_add) if date_add else None,
                 'cube': get_text(cube) if cube else None,
@@ -71,6 +74,7 @@ def get_cards(soup: BeautifulSoup) -> list:
                 'price_tags': price_tags
             }
         )
+    db.insert_update_cards(cards=ansver)
     return ansver
 
 
