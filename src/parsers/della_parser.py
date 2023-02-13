@@ -102,10 +102,10 @@ class DellParser:
 
     def parser_site(self):
         data = self.pars_all_cards()
-        with open('data.json', 'w', encoding='utf8') as file:
+        with open('../data.json', 'w', encoding='utf8') as file:
             json.dump(data, file, ensure_ascii=False)
             return file
 
     def get_file(self):
-        with open('data.json', 'r', encoding='utf8') as file:
+        with open('../data.json', 'r', encoding='utf8') as file:
             return file

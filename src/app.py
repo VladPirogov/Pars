@@ -1,5 +1,5 @@
-from fastapi import FastAPI
-from .della_parser import parser_site, get_file
+from fastapi import BackgroundTasks, FastAPI
+from src.parsers import DellParser, LoopDellParser
 
 # Initializing app
 app = FastAPI()
@@ -14,10 +14,9 @@ async def ping():
 
 @app.get("/start_pars")
 async def start_pars():
-    return parser_site()
+    return DellParser().parser_site()
 
 
 @app.get("/get_data_file")
 def get_data_file():
-    return get_file()
-
+    return DellParser().get_file()
