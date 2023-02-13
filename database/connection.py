@@ -1,3 +1,4 @@
+from datetime import datetime
 from pymongo import MongoClient
 from setings import DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
 
@@ -26,12 +27,15 @@ class DbMongo:
             if collection not in existing_collections:
                 self.database.create_collection(collection)
 
-    def insert_update_cards(self, cards):
+    def insert_update_cards(self, cards: list[dict]):
         for card in cards:
             if old_card := self.database.cards.find_one({'_id': card.get('_id')}):
+                card.update({'update_data': datetime.now()})
                 self.database.cards.update_one({'_id': card.get('_id')},
                                                  {'$set': card})
             else:
+                now = datetime.now()
+                card.update({'create_data': now, 'update_data': now})
                 self.database.cards.insert_one(card)
 
 
