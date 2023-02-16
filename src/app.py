@@ -5,6 +5,11 @@ from src.parsers import DellParser, LoopDellParser
 app = FastAPI()
 
 
+@app.on_event("startup")
+async def startup_event():
+    BackgroundTasks().add_task(LoopDellParser().loop_parse)
+
+
 @app.get("/")
 async def ping():
     return {'version': '0.1',

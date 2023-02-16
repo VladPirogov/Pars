@@ -6,5 +6,5 @@ class LoopDellParser(DellParser):
 
     def loop_parse(self):
         while True:
-            sleep(300)
             self.parser_site()
+            sleep(300)
