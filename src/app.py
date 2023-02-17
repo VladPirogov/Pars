@@ -1,13 +1,15 @@
-from fastapi import BackgroundTasks, FastAPI
-from src.parsers import DellParser, LoopDellParser
+from fastapi import FastAPI
+from fastapi_utils.tasks import repeat_every
+from src.parsers import DellParser
 
 # Initializing app
 app = FastAPI()
 
 
 @app.on_event("startup")
+@repeat_every(seconds=300)
 async def startup_event():
-    BackgroundTasks().add_task(LoopDellParser().loop_parse)
+    DellParser().pars_all_cards()
 
 
 @app.get("/")

@@ -6,6 +6,7 @@ from setings import DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
 class DbMongo:
     collections = (
         'cards',
+        'update_logs'
     )
     _instances = {}
 
@@ -28,16 +29,24 @@ class DbMongo:
                 self.database.create_collection(collection)
 
     def insert_update_cards(self, cards: list[dict]):
+        updated = []
+        created = []
+        now = datetime.now()
         for card in cards:
-            if old_card := self.database.cards.find_one({'_id': card.get('_id')}):
-                card.update({'update_data': datetime.now()})
+            if not card.get('_id'):
+                card.update({'_id': 'Not_Exist', 'create_data': now, 'update_data': now})
+                self.database.cards.insert_one(card)
+            elif self.database.cards.find_one({'_id': card.get('_id')}):
+                card.update({'update_data': now})
                 self.database.cards.update_one({'_id': card.get('_id')},
                                                  {'$set': card})
+                updated.append(card.get('_id'))
             else:
-                now = datetime.now()
                 card.update({'create_data': now, 'update_data': now})
                 self.database.cards.insert_one(card)
-
-
-if __name__ == '__main__':
-    db = DbMongo()
+                created.append(card.get('_id'))
+        self.database.update_logs.insert_one({
+            'datatime': now,
+            'updated': updated,
+            'created': created
+        })
