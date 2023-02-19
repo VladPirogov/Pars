@@ -9,7 +9,7 @@ app = FastAPI()
 @app.on_event("startup")
 @repeat_every(seconds=300)
 async def startup_event():
-    DellParser().pars_all_cards()
+    DellParser().parser_site()
 
 
 @app.get("/")

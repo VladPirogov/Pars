@@ -46,7 +46,13 @@ class DbMongo:
                 self.database.cards.insert_one(card)
                 created.append(card.get('_id'))
         self.database.update_logs.insert_one({
-            'datatime': now,
-            'updated': updated,
-            'created': created
+            'timestamp': now,
+            'updated_ids': updated,
+            'created_ids': created
         })
+
+    def get_last_update(self):
+        log = next(self.database.update_logs.find().sort([('timestamp', -1)]).limit(1))
+        return log.get('timestamp')
+
+

@@ -1,5 +1,6 @@
 import requests
 import json
+from datetime import datetime
 from copy import deepcopy
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
@@ -23,6 +24,9 @@ class DellParser:
         self.headers = headers
         self.db = DbMongo()
         self.domain = domain
+
+    def _get_last_timestamp(self):
+        return self.db.get_last_update()
 
     def get_cards(self, soup: BeautifulSoup) -> list:
         request_card_list = soup.find_all("div", {"class": "is_search"})
@@ -82,7 +86,6 @@ class DellParser:
                     'price_tags': price_tags
                 }
             )
-        self.db.insert_update_cards(cards=deepcopy(ansver))
         return ansver
 
     def pars_all_cards(self, url: str = None):
@@ -101,11 +104,13 @@ class DellParser:
             raise HTTPException(status_code=response.status_code)
 
     def parser_site(self):
-        data = self.pars_all_cards()
-        with open('../data.json', 'w', encoding='utf8') as file:
-            json.dump(data, file, ensure_ascii=False)
-            return file
+        if (datetime.now() - self._get_last_timestamp()).total_seconds() > 150:
+            data = self.pars_all_cards()
+            self.db.insert_update_cards(cards=deepcopy(data))
+            return data
 
     def get_file(self):
-        with open('../data.json', 'r', encoding='utf8') as file:
+        data = self.parser_site()
+        with open('../data.json', 'w', encoding='utf8') as file:
+            json.dump(data, file, ensure_ascii=False)
             return file
