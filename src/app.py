@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from src.parsers import DellParser
+from fastapi_pagination.ext.pymongo import paginate
 
 # Initializing app
 app = FastAPI()
@@ -19,9 +20,14 @@ async def ping():
             'documentation': 'go to /docs'}
 
 
-@app.get("/start_pars")
+@app.get("/fors_pars")
 async def start_pars():
     return DellParser().parser_site()
+
+
+@app.get('/cards')
+async def get_cards():
+    return paginate()
 
 
 @app.get("/get_data_file")

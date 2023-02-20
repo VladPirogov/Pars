@@ -28,7 +28,7 @@ class DellParser:
     def _get_last_timestamp(self):
         return self.db.get_last_update()
 
-    def get_cards(self, soup: BeautifulSoup) -> list:
+    def pars_cards(self, soup: BeautifulSoup) -> list:
         request_card_list = soup.find_all("div", {"class": "is_search"})
         ansver = []
         get_text = lambda x: x.text.strip('\n').replace('\n\n\n\n\n\n', '\n').replace(' ', ' ')
@@ -95,7 +95,7 @@ class DellParser:
         )
         if response.status_code == 200:
             soup = BeautifulSoup(response.text)
-            cards = self.get_cards(soup=soup)
+            cards = self.pars_cards(soup=soup)
             next_page = soup.find('a', text='наступна стор.')
             if next_page:
                 cards.extend(self.pars_all_cards(url=f"{self.domain}{next_page.get('href')}"))
@@ -108,6 +108,9 @@ class DellParser:
             data = self.pars_all_cards()
             self.db.insert_update_cards(cards=deepcopy(data))
             return data
+
+    def get_cards(self):
+        return self.db.get_all_active_cards()
 
     def get_file(self):
         data = self.parser_site()
