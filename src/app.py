@@ -1,7 +1,7 @@
+from json import dumps
 from fastapi import FastAPI
 from fastapi_utils.tasks import repeat_every
 from src.parsers import DellParser
-from fastapi_pagination.ext.pymongo import paginate
 
 # Initializing app
 app = FastAPI()
@@ -22,12 +22,12 @@ async def ping():
 
 @app.get("/fors_pars")
 async def start_pars():
-    return DellParser().parser_site()
+    return DellParser().parser_site(forse_update=True)
 
 
 @app.get('/cards')
-async def get_cards():
-    return paginate()
+async def get_cards(index_page: int, cards_on_pages: int):
+    return dumps(DellParser().paginate(index_page=index_page, cards_on_pages=cards_on_pages), default=str)
 
 
 @app.get("/get_data_file")

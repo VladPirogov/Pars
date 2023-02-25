@@ -5,3 +5,4 @@ DB_PORT = environ.get('DB_PORT', 27017)
 DB_USER = environ.get('DB_USER')
 DB_PASS = environ.get('DB_PASS')
 DB_NAME = environ.get('DB_NAME', 'SiteParser')
+CARDS_ON_PAGE = 20

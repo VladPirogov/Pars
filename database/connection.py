@@ -1,6 +1,7 @@
 from datetime import datetime
-from pymongo import MongoClient
-from setings import DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME
+from math import ceil
+from pymongo import MongoClient, UpdateOne, InsertOne
+from setings import DB_HOST, DB_PORT, DB_USER, DB_PASS, DB_NAME, CARDS_ON_PAGE
 
 
 class DbMongo:
@@ -32,19 +33,20 @@ class DbMongo:
         updated = []
         created = []
         now = datetime.now()
+        bulk_operations = []
         for card in cards:
             if not card.get('_id'):
                 card.update({'_id': 'Not_Exist', 'create_data': now, 'update_data': now})
-                self.database.cards.insert_one(card)
+                bulk_operations.append(InsertOne(card))
             elif self.database.cards.find_one({'_id': card.get('_id')}):
                 card.update({'update_data': now})
-                self.database.cards.update_one({'_id': card.get('_id')},
-                                                 {'$set': card})
+                bulk_operations.append(UpdateOne({'_id': card['_id']}, {'$set': {'update_data': now, **card}}, upsert=True))
                 updated.append(card.get('_id'))
             else:
                 card.update({'create_data': now, 'update_data': now})
-                self.database.cards.insert_one(card)
+                bulk_operations.append(InsertOne(card))
                 created.append(card.get('_id'))
+        self.database.cards.bulk_write(bulk_operations)
         self.database.update_logs.insert_one({
             'timestamp': now,
             'updated_ids': updated,
@@ -58,3 +60,13 @@ class DbMongo:
     def get_all_active_cards(self):
         return self.database.cards.find({'is_active': True}).sort([('update_data', -1)])
 
+    def get_max_number_pages(self, cards_on_pages: int = CARDS_ON_PAGE):
+        active_cards = self.database.cards.count_documents({'is_active': True})
+        if active_cards:
+            return ceil(active_cards/cards_on_pages)
+        else:
+            return 0
+
+    def get_page(self, index_page: int = 0, cards_on_pages: int = CARDS_ON_PAGE):
+        cards = self.database.cards.find({'is_active': True}).sort([('update_data', -1)]).skip(index_page*cards_on_pages).limit(cards_on_pages)
+        return list(cards)

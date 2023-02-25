@@ -5,6 +5,7 @@ from copy import deepcopy
 from bs4 import BeautifulSoup
 from fastapi import HTTPException
 from database.connection import DbMongo
+from setings import CARDS_ON_PAGE
 
 first_step_url = 'https://della.com.ua/search/a204bd204eflolh0i221102l230103k0m1.html'
 headers = {
@@ -103,8 +104,8 @@ class DellParser:
         else:
             raise HTTPException(status_code=response.status_code)
 
-    def parser_site(self):
-        if (datetime.now() - self._get_last_timestamp()).total_seconds() > 150:
+    def parser_site(self, forse_update: bool = False):
+        if (datetime.now() - self._get_last_timestamp()).total_seconds() > 150 or forse_update:
             data = self.pars_all_cards()
             self.db.insert_update_cards(cards=deepcopy(data))
             return data
@@ -117,3 +118,12 @@ class DellParser:
         with open('../data.json', 'w', encoding='utf8') as file:
             json.dump(data, file, ensure_ascii=False)
             return file
+
+    def paginate(self, index_page: int = 0, cards_on_pages: int = None):
+        if not index_page:
+            self.parser_site()
+        if not cards_on_pages:
+            cards_on_pages = CARDS_ON_PAGE
+        page = self.db.get_page(index_page=index_page, cards_on_pages=cards_on_pages)
+        max_pages = self.db.get_max_number_pages(cards_on_pages=cards_on_pages)
+        return page, max_pages
