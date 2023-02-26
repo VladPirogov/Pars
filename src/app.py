@@ -27,7 +27,7 @@ async def start_pars():
 
 @app.get('/cards')
 async def get_cards(index_page: int, cards_on_pages: int):
-    return dumps(DellParser().paginate(index_page=index_page, cards_on_pages=cards_on_pages), default=str)
+    return DellParser().paginate(index_page=index_page, cards_on_pages=cards_on_pages)
 
 
 @app.get("/get_data_file")

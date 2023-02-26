@@ -68,5 +68,5 @@ class DbMongo:
             return 0
 
     def get_page(self, index_page: int = 0, cards_on_pages: int = CARDS_ON_PAGE):
-        cards = self.database.cards.find({'is_active': True}).sort([('update_data', -1)]).skip(index_page*cards_on_pages).limit(cards_on_pages)
+        cards = self.database.cards.find({'is_active': True}, {'update_data': 0, 'create_data':0}).sort([('update_data', -1)]).skip(index_page*cards_on_pages).limit(cards_on_pages)
         return list(cards)
