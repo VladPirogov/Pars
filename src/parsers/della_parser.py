@@ -105,7 +105,8 @@ class DellParser:
             raise HTTPException(status_code=response.status_code)
 
     def parser_site(self, forse_update: bool = False):
-        if (datetime.now() - self._get_last_timestamp()).total_seconds() > 150 or forse_update:
+        last_timestamp = self._get_last_timestamp()
+        if not last_timestamp or (datetime.now() - last_timestamp).total_seconds() > 150 or forse_update:
             data = self.pars_all_cards()
             self.db.insert_update_cards(cards=deepcopy(data))
             return data

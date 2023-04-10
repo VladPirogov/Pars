@@ -54,8 +54,10 @@ class DbMongo:
         })
 
     def get_last_update(self):
-        log = next(self.database.update_logs.find().sort([('timestamp', -1)]).limit(1))
-        return log.get('timestamp')
+        log = list(self.database.update_logs.find().sort([('timestamp', -1)]).limit(1))
+        if log:
+            last_log = log[0]
+            return last_log.get('timestamp')
 
     def get_all_active_cards(self):
         return self.database.cards.find({'is_active': True}).sort([('update_data', -1)])
